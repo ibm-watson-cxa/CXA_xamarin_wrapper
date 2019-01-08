@@ -1,6 +1,5 @@
 ﻿using Xamarin.Forms;
 using Xamarin.Forms.Platform.Android;
-using KitchenSink;
 using KitchenSink.Droid;
 
 using Com.TL.Uic;
@@ -10,7 +9,10 @@ using XamarinCXA;
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Android.App;
+using Android.Views.InputMethods;
+using Android.InputMethodServices;
 
 [assembly: Dependency(typeof(TealeafImplementation))]
 namespace KitchenSink.Droid
@@ -24,12 +26,43 @@ namespace KitchenSink.Droid
 
         void ITealeaf.AddFocusAndRegister(View textView)
         {
-            throw new System.NotImplementedException();
+            // get current application context
+            var currentActivity = (Activity)Android.App.Application.Context;
+
+            // convert Xamarin.Forms.View to Android.Views.View
+            var renderer = Platform.CreateRendererWithContext(textView, currentActivity);
+            Platform.SetRenderer(textView, renderer);
+            var nativeView = renderer.View;
+
+            nativeView.FocusChange += (sender, e) =>
+            {
+                bool hasFocus = e.HasFocus;
+                if (hasFocus)
+                {
+                    InputMethodManager imm = (InputMethodManager)
+                        nativeView.Context.GetSystemService(Android.Content.Context.InputMethodService);
+                    imm.ShowSoftInput(nativeView, InputMethodManager.ShowForced);
+
+                    KeyboardView keyboardView = new KeyboardView(nativeView.Context.ApplicationContext, null);
+                    Tealeaf.LogEvent(keyboardView, Tealeaf.TlfUiKeyboardDidShowNotification);
+                    Tealeaf.LogEvent(nativeView, Tealeaf.TlfOnFocusChangeIn);
+                }
+                else
+                {
+                    Tealeaf.LogEvent(nativeView, Tealeaf.TlfOnFocusChangeOut);
+                    InputMethodManager imm = (InputMethodManager)
+                        nativeView.Context.GetSystemService(Android.Content.Context.InputMethodService);
+                    imm.HideSoftInputFromWindow(nativeView.WindowToken, 0);
+
+                    KeyboardView keyboardView = new KeyboardView(nativeView.Context.ApplicationContext, null);
+                    Tealeaf.LogEvent(keyboardView, Tealeaf.TlfUiKeyboardDidHideNotification);
+                }
+            };
         }
 
         void ITealeaf.GetBooleanConfigItemForKey(string key, string moduleName)
         {
-            bool result = (bool) EOCore.GetConfigItemBoolean(key, EOCore.GetLifecycleObject(moduleName));
+            bool result = (bool)EOCore.GetConfigItemBoolean(key, EOCore.GetLifecycleObject(moduleName));
         }
 
         string ITealeaf.GetName()
@@ -92,6 +125,7 @@ namespace KitchenSink.Droid
 
         void ITealeaf.LogScreenLayout(string logicalPageName)
         {
+            Debug.WriteLine("[TEALEAF] Logged ScreenLayout");
             try
             {
                 var currentActivity = (Activity)Android.App.Application.Context;
@@ -145,7 +179,7 @@ namespace KitchenSink.Droid
         void ITealeaf.SetConfigItem(string key, object value, string moduleName)
         {
             string strValue = (value == null) ? "true" : "false";
-            bool result = (bool) EOCore.UpdateConfig(key, strValue, EOCore.GetLifecycleObject(moduleName));
+            bool result = (bool)EOCore.UpdateConfig(key, strValue, EOCore.GetLifecycleObject(moduleName));
         }
 
         //void ITealeaf.updateResult(object result)
