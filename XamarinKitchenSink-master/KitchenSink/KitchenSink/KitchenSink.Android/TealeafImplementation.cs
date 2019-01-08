@@ -64,7 +64,13 @@ namespace KitchenSink.Droid
 
         void ITealeaf.LogCustomEvent(string eventName, Dictionary<string, string> map, int logLevel)
         {
-            throw new System.NotImplementedException();
+            Dictionary<string, string> dict = new Dictionary<string, string>();
+            foreach (KeyValuePair<string, string> entry in map)
+            {
+                dict.Add(entry.Key, (string)entry.Value);
+            }
+
+            Tealeaf.LogCustomEvent(eventName, dict, logLevel);
         }
 
         void ITealeaf.LogLocation()
