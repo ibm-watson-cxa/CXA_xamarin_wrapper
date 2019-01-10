@@ -13,6 +13,7 @@ using System.Diagnostics;
 using Android.App;
 using Android.Views.InputMethods;
 using Android.InputMethodServices;
+using Android.Widget;
 
 [assembly: Dependency(typeof(TealeafImplementation))]
 namespace KitchenSink.Droid
@@ -82,17 +83,29 @@ namespace KitchenSink.Droid
 
         void ITealeaf.LogClickEvent(View view)
         {
-            //try
-            //{
-            //    if (view is EditText)
-            //    {
+            try
+            {
+                // get current application context
+                var currentActivity = (Activity)Android.App.Application.Context;
 
-            //    }
-            //    else
-            //    {
-            //        //Tealeaf.LogEvent(view, "click");
-            //    }
-            //}
+                // convert Xamarin.Forms.View to Android.Views.View
+                var renderer = Platform.CreateRendererWithContext(view, currentActivity);
+                Platform.SetRenderer(view, renderer);
+                var nativeView = renderer.View;
+
+                if (nativeView is EditText)
+                {
+                    DependencyService.Get<ITealeaf>().AddFocusAndRegister(view);
+                }
+                else
+                {
+                    Tealeaf.LogEvent(nativeView, "click");
+                }
+            }
+            catch (Exception e)
+            {
+
+            }
         }
 
         void ITealeaf.LogCustomEvent(string eventName, Dictionary<string, string> map, int logLevel)
@@ -125,7 +138,6 @@ namespace KitchenSink.Droid
 
         void ITealeaf.LogScreenLayout(string logicalPageName)
         {
-            Debug.WriteLine("[TEALEAF] Logged ScreenLayout");
             try
             {
                 var currentActivity = (Activity)Android.App.Application.Context;
