@@ -7,4 +7,12 @@
   This sample removes the method: android.support.v4.content.CursorLoader.loadInBackground:
   <remove-node path="/api/package[@name='android.support.v4.content']/class[@name='CursorLoader']/method[@name='loadInBackground']" />
   -->
+    <add-node path="/api/package[@name='com.tl.uic.util']">
+        <class abstract="false" deprecated="not deprecated" final="false" name="CheckWhiteListTask" static="true" visibility="public" extends="java.lang.Object">
+        </class>
+        <class abstract="false" deprecated="not deprecated" final="false" name="ScreenShotTask" static="true" visibility="public" extends="java.lang.Object">
+        </class>
+        <class abstract="false" deprecated="not deprecated" final="false" name="GeoLocationTask" static="true" visibility="public" extends="java.lang.Object">
+        </class>
+    </add-node>
 </metadata>
